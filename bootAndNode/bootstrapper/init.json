@@ -1,0 +1,16 @@
+{
+  "subsystems": [
+    {
+      "name": "node_manager",
+      "script_path": "./scripts/node_manager.sh"
+    },
+    {
+      "name": "authentication",
+      "script_path": "./scripts/authentication.sh"
+    },
+    {
+      "name": "workflow_engine",
+      "script_path": "./scripts/workflow_engine.sh"
+    }
+  ]
+}
