@@ -2,6 +2,8 @@ from kafka import KafkaProducer, KafkaConsumer
 import json, time
 
 
+
+
 # maintain the list of all processes
 class Agent:
     def __init__(self):
@@ -26,6 +28,9 @@ if __name__ == "__main__":
     log = { 'Process': 'Agent', 'message': 'I have been run' }
     producer.send("logs", json.dumps(log).encode('utf-8'))
     producer.flush()
+    
+    # Run the basic installation
+    
 
     agent = Agent()
     consumer = KafkaConsumer('agent', bootstrap_servers='localhost:9092')

@@ -1,8 +1,6 @@
 import threading
 import json
 import paramiko
-import flask
-from prometheus_flask_exporter import PrometheusMetrics
 
 LOCK_ALLOC = threading.Lock()
 
@@ -72,25 +70,16 @@ def allocate_new_machine(port=None):
 	LOCK_ALLOC.release()
 	return resp
 
+def alloc():
+	try:
+		print("Json ",flask.request.get_json())
+		req = flask.request.get_json()
+		if 'port' in req:
+			return flask.jsonify(allocate_new_machine(req['port']))
+		return flask.jsonify(allocate_new_machine())
+	except Exception as ex:
+		return flask.jsonify({"msg":"API error "+ex})
+
 # print(allocate_new_machine())
 if __name__ == '__main__':
-	app = flask.Flask('nodemgr')
-	metrics = PrometheusMetrics(app)
-	@app.route('/', methods=['POST', 'GET'])
-	def alloc():
-		try:
-			print("Json ",flask.request.get_json())
-			req = flask.request.get_json()
-			if 'port' in req:
-				return flask.jsonify(allocate_new_machine(req['port']))
-			return flask.jsonify(allocate_new_machine())
-		except Exception as ex:
-			return flask.jsonify({"msg":"API error "+ex})
-		
-	metrics.register_default(
-		metrics.counter(
-			'by_path_counter', 'Request count by request paths',
-			labels={'path': lambda: flask.request.path}
-		)
-	)
-	app.run(host = '0.0.0.0',port = 8889, threaded=True)
+    print(allocate_new_machine())
