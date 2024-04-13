@@ -9,8 +9,8 @@ requests = [
         'args': {
             'config': {
                 'name': 'process1',
-                'command': 'python3 process1.py',
-                'env' : {'key1': 'value1', 'key2': 'value2'}
+                'config': '/home/sreejan/IAS/MLOps/agent/',
+                'command': 'sh install.sh &',
                 }
             },
         'response_topic': 'logs',
@@ -19,7 +19,7 @@ requests = [
         'node_id': '0',
         'method': 'kill_process',
         'args': {
-            'process_id': '1'
+            'process_id': 'e77fb035-52c1-41c6-baba-027ce9c422cd'
             },
         'response_topic': 'logs',
     },
@@ -46,9 +46,9 @@ requests = [
 if __name__ == "__main__":
     producer = KafkaProducer(bootstrap_servers='localhost:9092')
     for request in requests:
-        consumer = KafkaConsumer("logs", bootstrap_servers='localhost:9092', auto_offset_reset='earliest')
+        consumer = KafkaConsumer("AgentOut", bootstrap_servers='localhost:9092', auto_offset_reset='earliest')
         request['timestamp'] = time.time()
-        producer.send("agent", json.dumps(request).encode('utf-8'))
+        producer.send("AgentIn", json.dumps(request).encode('utf-8'))
         for msg in consumer:
             try:
                 val = json.loads(msg.value)

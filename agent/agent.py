@@ -14,6 +14,8 @@ class Process:
         self.process_id = str(uuid.uuid4())  # Generate unique ID for each process
 
     def start(self):
+        cdCommand = "cd " + self.path
+        self.command = cdCommand + " && " + self.command
         self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         return self.process_id
 
@@ -37,8 +39,8 @@ class Processes:
     def __init__(self):
         self.processes = {}
 
-    def start_process(self, name, command):
-        new_process = Process(name, command)
+    def start_process(self, name, path, command):
+        new_process = Process(name, path, command)
         process_id = new_process.start()
         self.processes[process_id] = new_process
         return process_id
@@ -46,6 +48,8 @@ class Processes:
     def kill_process(self, process_id):
         if process_id in self.processes:
             self.processes[process_id].kill()
+            # Remove the process from the list
+            del self.processes[process_id]
 
     def reset_process(self, process_id):
         if process_id in self.processes:
@@ -62,7 +66,8 @@ class Agent:
     def start_process(self, process_config):
         name = process_config['name']
         command = process_config['command']
-        return {'method': 'start_process', 'process_id': self.processes.start_process(name, command)}
+        path = process_config['path']
+        return {'method': 'start_process', 'process_id': self.processes.start_process(name, path,command)}
 
     def kill_process(self, process_id):
         self.processes.kill_process(process_id)
@@ -96,7 +101,7 @@ if __name__ == "__main__":
     producer.send("logs", json.dumps(log).encode('utf-8'))
 
     agent = Agent(node_id)
-    consumer = KafkaConsumer('agent_' + node_id, bootstrap_servers='localhost:9092', auto_offset_reset='earliest')
+    consumer = KafkaConsumer('AgentIn', bootstrap_servers='localhost:9092', auto_offset_reset='earliest')
     print("Starting the agent server\n")
 
     for msg in consumer:
@@ -120,4 +125,4 @@ if __name__ == "__main__":
 
             # Send output
             response = {"request": request, "result": result}
-            producer.send(request['response_topic'], json.dumps(response).encode('utf-8'))
+            producer.send('AgentOut', json.dumps(response).encode('utf-8'))

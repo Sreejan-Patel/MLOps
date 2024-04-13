@@ -22,5 +22,4 @@ echo "Installing Docker..."
 # Installing GNOME Terminal
 echo "Installing GNOME Terminal..."
 # sudo -S apt-get install -y gnome-terminal
-
 echo "Installation completed successfully!"

@@ -24,3 +24,5 @@ echo "Installing GNOME Terminal..."
 # sudo -S apt-get install -y gnome-terminal
 
 echo "Installation completed successfully!"
+touch testing.txt
+sleep(100)
