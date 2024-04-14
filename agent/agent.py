@@ -7,9 +7,10 @@ import psutil
 from kafka import KafkaProducer, KafkaConsumer
 
 class Process:
-    def __init__(self, name, command):
+    def __init__(self, name, path, command):
         self.name = name
         self.command = command
+        self.path = path
         self.process = None
         self.process_id = str(uuid.uuid4())  # Generate unique ID for each process
 
@@ -101,7 +102,7 @@ if __name__ == "__main__":
     producer.send("logs", json.dumps(log).encode('utf-8'))
 
     agent = Agent(node_id)
-    consumer = KafkaConsumer('AgentIn', bootstrap_servers='localhost:9092', auto_offset_reset='earliest')
+    consumer = KafkaConsumer('AgentIn', bootstrap_servers='localhost:9092')
     print("Starting the agent server\n")
 
     for msg in consumer:

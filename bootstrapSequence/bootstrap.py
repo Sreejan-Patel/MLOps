@@ -7,10 +7,10 @@ class ProcessRunner:
     def __init__(self, kafka_server='localhost:9092'):
         self.kafka_server = kafka_server
         self.producer = KafkaProducer(bootstrap_servers=self.kafka_server)
-        self.consumer = KafkaConsumer("node_manager_response",
+        self.consumer = KafkaConsumer("NodeManagerOut",
                                       bootstrap_servers=self.kafka_server,
                                       auto_offset_reset='latest')
-        self.consumer.subscribe(["node_manager_response"])
+        self.consumer.subscribe(["NodeManagerOut"])
 
     def send_process_request(self, process_name, process_path):
         process_config = {
@@ -18,7 +18,7 @@ class ProcessRunner:
             "path": process_path
         }
         # Sending the configuration to the node_manager through Kafka
-        self.producer.send("node_manager", json.dumps(process_config).encode('utf-8'))
+        self.producer.send("NodeManagerIn", json.dumps(process_config).encode('utf-8'))
         print(f"Request sent to node_manager to start {process_name} at {process_path}")
 
     def wait_for_confirmation(self, process_name):
@@ -54,33 +54,33 @@ class Bootstrapper:
         subprocess.run(['bash', self.install_path, self.password])
 
     def start_agent(self):
-        subprocess.Popen(['python3', self.agent_path])
+        subprocess.Popen(['python3', self.agent_path, '0'])
 
     def start_initial_subsystems(self):
-        self.process_runner.run_process("VM_Manager", self.vm_manager_path)
-        self.process_runner.run_process("Node_Manager", self.node_manager_path)
+        subprocess.Popen(['python3', self.vm_manager_path])
+        # subprocess.Popen(['python3', self.node_manager_path])
 
-    def start_subsystems(self, init_file):
-        with open(init_file, 'r') as file:
-            subsystems = json.load(file)
-        for subsystem in subsystems:
-            self.process_runner.run_process(subsystem['name'], subsystem['path'])
+    # def start_subsystems(self, init_file):
+    #     with open(init_file, 'r') as file:
+    #         subsystems = json.load(file)
+    #     for subsystem in subsystems:
+    #         self.process_runner.run_process(subsystem['name'], subsystem['path'])
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python bootstrapper.py <path_to_init_file>")
-        sys.exit(1)
+    # if len(sys.argv) != 2:
+    #     print("Usage: python bootstrapper.py <path_to_init_file>")
+    #     sys.exit(1)
 
-    init_file_path = sys.argv[1]
+    # init_file_path = sys.argv[1]
 
     bootstrapper = Bootstrapper(
         nfs_path="/home/sreejan/NFS",
         subnet="196.168.100.5/24",
         password="changeme",
-        nfs_server_path="/home/sreejan/NFS/system/nfs/nfs_server.sh",
-        install_path="/home/sreejan/NFS/system/install.sh",
-        agent_path="/home/sreejan/NFS/system/agent/agent.py",
-        vm_manager_path="/home/sreejan/NFS/system/vm_manager/vm_manager.py",
+        nfs_server_path="./nfs_server.sh",
+        install_path="./install.sh",
+        agent_path="/home/sreejan/IAS/MLOps/agent/agent.py",
+        vm_manager_path="/home/sreejan/IAS/MLOps/vmManager/vm_manager.py",
         node_manager_path="/home/sreejan/NFS/system/node_manager/node_manager.py"
     )
 
@@ -88,4 +88,4 @@ if __name__ == "__main__":
     bootstrapper.run_basic_installation()
     bootstrapper.start_agent()
     bootstrapper.start_initial_subsystems()
-    bootstrapper.start_subsystems(init_file_path)
+    # bootstrapper.start_subsystems(init_file_path)

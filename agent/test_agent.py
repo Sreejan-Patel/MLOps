@@ -9,8 +9,8 @@ requests = [
         'args': {
             'config': {
                 'name': 'process1',
-                'config': '/home/sreejan/IAS/MLOps/agent/',
-                'command': 'sh install.sh &',
+                'path': '/home/sreejan/IAS/MLOps/vmManager/',
+                'command': 'python3 vm_manager.py',
                 }
             },
         'response_topic': 'logs',

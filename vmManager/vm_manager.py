@@ -4,7 +4,7 @@ import threading
 from kafka import KafkaConsumer, KafkaProducer
 
 SCRIPT_PATH = './bootstrap.sh'
-VM_LIST_PATH = './vm_list.json'
+VM_LIST_PATH = '/home/sreejan/IAS/MLOps/vmManager/vm_list.json'
 GET_HEALTH_SCRIPT_PATH = './get_health.py'
 
 class VM:
@@ -22,7 +22,7 @@ class VM:
         sftp_client = ssh_client.open_sftp()
         sftp_client.put(SCRIPT_PATH, 'bootstrap.sh')
         sftp_client.close()
-        ssh_client.exec_command('sh bootstrap.sh')
+        ssh_client.exec_command('bash bootstrap.sh changeme')
         self.is_active = True
         ssh_client.close()
 
