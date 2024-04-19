@@ -1,20 +1,9 @@
-## start process
+## start Vm
 ### request
 ```
 {
-    'node_id': node_id,
-    'method': 'start_process',
-    'args': {
-        config: {
-            'name': 'process_name',
-            'path': 'path_to_process',
-            'command': 'command_to_run',
-            'env': {
-                'env1': 'value1',
-                'env2': 'value2',
-            }
-        },
-    'timestamp': 'time.time()'    }
+    'method': 'allocate_vm',
+    'timestamp': 'time.time()'
 }
 ```
 ### response
@@ -23,23 +12,22 @@
     'request': 'entire request',
     'result': {
         'status': 'success',
-        'message': 'process started successfully'
+        'message': 'vm started successfully'
     }
     'result': {
         'status': 'failed',
-        'message': 'process failed to start'
+        'message': 'vm failed to start'
     }
 }
 ```
 
-## kill process
+## kill Vm
 ### request
 ```
 {
-    'node_id': node_id,
-    'method': 'kill_process',
+    'method': 'remove_vm',
     'args': {
-        'process_id': process_id
+        'vm_id': vm_id
     },
     'timestamp': 'time.time()'
 }
@@ -50,23 +38,22 @@
     'request': 'entire request',
     'result': {
         'status': 'success',
-        'message': 'process kill successfully'
+        'message': 'vm kill successfully'
     }
     'result': {
         'status': 'failed',
-        'message': 'process failed to be killed'
+        'message': 'vm failed to be killed'
     }
 }
 ```
 
-## reset process
+## reset Vm
 ### request
 ```
 {
-    'node_id': node_id,
-    'method': 'reset_process',
+    'method': 'reset_vm',
     'args': {
-        'process_id': process_id
+        'vm_id': vm_id
     },
     'timestamp': 'time.time()'}
 ```
@@ -76,11 +63,11 @@
     'request': 'entire request',
     'result': {
         'status': 'success',
-        'message': 'process reset successfully'
+        'message': 'vm reset successfully'
     }
     'result': {
         'status': 'failed',
-        'message': 'process failed to be reset'
+        'message': 'vm failed to be reset'
     }
 }
 ```
@@ -89,8 +76,10 @@
 ### request
 ```
 {
-    'node_id': node_id,
     'method': 'get_health',
+    'args': {
+        'vm_id': 'vm_id',
+    }
     'timestamp': 'time.time()'
 }
 ```
@@ -109,12 +98,11 @@
 }
 ```
 
-## processes
+## Get vms
 ### request
 ```
 {
-    'node_id': node_id,
-    'method': 'get_processes',
+    'method': 'get_vms',
     'timestamp': 'time.time()'}
 ```
 ### response
@@ -127,7 +115,6 @@
     }
     'result': {
         'status': 'failed',
-        'message': 'unable to get health'
     }
 }
 ```

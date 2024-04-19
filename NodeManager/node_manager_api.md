@@ -1,20 +1,9 @@
-## start process
+## create Node
 ### request
 ```
 {
-    'node_id': node_id,
-    'method': 'start_process',
-    'args': {
-        config: {
-            'name': 'process_name',
-            'path': 'path_to_process',
-            'command': 'command_to_run',
-            'env': {
-                'env1': 'value1',
-                'env2': 'value2',
-            }
-        },
-    'timestamp': 'time.time()'    }
+    'method': 'create_node',
+    'timestamp': 'time.time()'
 }
 ```
 ### response
@@ -23,23 +12,22 @@
     'request': 'entire request',
     'result': {
         'status': 'success',
-        'message': 'process started successfully'
+        'message': 'node started successfully'
     }
     'result': {
         'status': 'failed',
-        'message': 'process failed to start'
+        'message': 'node failed to start'
     }
 }
 ```
 
-## kill process
+## remove node
 ### request
 ```
 {
-    'node_id': node_id,
-    'method': 'kill_process',
+    'method': 'remove_node',
     'args': {
-        'process_id': process_id
+        'node_id': 'node_id'
     },
     'timestamp': 'time.time()'
 }
@@ -50,23 +38,22 @@
     'request': 'entire request',
     'result': {
         'status': 'success',
-        'message': 'process kill successfully'
+        'message': 'Node kill successfully'
     }
     'result': {
         'status': 'failed',
-        'message': 'process failed to be killed'
+        'message': 'Node failed to be killed'
     }
 }
 ```
 
-## reset process
+## reset node
 ### request
 ```
 {
-    'node_id': node_id,
-    'method': 'reset_process',
+    'method': 'reset_node',
     'args': {
-        'process_id': process_id
+        'node_id': node_id
     },
     'timestamp': 'time.time()'}
 ```
@@ -76,11 +63,11 @@
     'request': 'entire request',
     'result': {
         'status': 'success',
-        'message': 'process reset successfully'
+        'message': 'node reset successfully'
     }
     'result': {
         'status': 'failed',
-        'message': 'process failed to be reset'
+        'message': 'node failed to be reset'
     }
 }
 ```
@@ -89,7 +76,6 @@
 ### request
 ```
 {
-    'node_id': node_id,
     'method': 'get_health',
     'timestamp': 'time.time()'
 }
@@ -109,13 +95,25 @@
 }
 ```
 
-## processes
+## run_process_on_node
 ### request
 ```
 {
-    'node_id': node_id,
-    'method': 'get_processes',
-    'timestamp': 'time.time()'}
+    'method': 'run_process_on_node',
+    'args': {
+        'node_id': 'node_id',
+        'config': {
+            'name': 'process_name',
+            'path': 'path_to_process',
+            'command': 'command_to_run',
+            'env': {
+                'env1': 'value1',
+                'env2': 'value2',
+            }
+        },
+    }
+    timestamp: 'time.time()'
+}
 ```
 ### response
 ```
@@ -123,11 +121,7 @@
     'request': 'entire request',
     'result': {
         'status': 'success',
-        'process': [],
-    }
-    'result': {
-        'status': 'failed',
-        'message': 'unable to get health'
+        'message': 'process started successfully'
     }
 }
 ```

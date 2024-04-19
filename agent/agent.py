@@ -1,11 +1,17 @@
+from kafka import KafkaProducer, KafkaConsumer
 import json
-import subprocess
 import sys
-import threading
+import subprocess
 import uuid
 import psutil
-from kafka import KafkaProducer, KafkaConsumer
+import os
 
+
+
+BOOTSTRAP_SERVER = 'localhost:9092'
+
+
+# maintain the list of all processes
 class Process:
     def __init__(self, name, path, command):
         self.name = name
@@ -16,7 +22,7 @@ class Process:
 
     def start(self):
         cdCommand = "cd " + self.path
-        self.command = cdCommand + " && " + self.command
+        self.command = cdCommand + " && " + self.command + " " + BOOTSTRAP_SERVER
         self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         return self.process_id
 
@@ -68,18 +74,22 @@ class Agent:
         name = process_config['name']
         command = process_config['command']
         path = process_config['path']
-        return {'method': 'start_process', 'process_id': self.processes.start_process(name, path,command)}
+
+        if not os.path.exists(path):
+            return {'method': 'start_process', 'status': 'error', 'message': f"Path '{path}' does not exist."}
+
+        return {'method': 'start_process', 'process_id': self.processes.start_process(name, path,command), 'status': 'success'}
 
     def kill_process(self, process_id):
         self.processes.kill_process(process_id)
-        return {'method': 'kill_process', 'process_id': process_id}
+        return {'method': 'kill_process', 'process_id': process_id, 'status': 'success'}
 
     def reset_process(self, process_id):
         self.processes.reset_process(process_id)
-        return {'method': 'reset_process', 'process_id': process_id}
+        return {'method': 'reset_process', 'process_id': process_id, 'status': 'success'}
 
     def get_processes(self):
-        return {'method': 'get_processes', 'processes': self.processes.get_processes()}
+        return {'method': 'get_processes', 'processes': self.processes.get_processes(), 'status': 'success'}
 
     def get_health(self):
         # Improved health check using psutil
@@ -91,39 +101,49 @@ class Agent:
         return {
             'method': 'get_health',
             'free_cores': free_cores,
-            'free_memory_gb': free_memory_gb
+            'free_memory_gb': free_memory_gb,
+            'status': 'success'
         }
 
+
 if __name__ == "__main__":
-    node_id = sys.argv[1]  # get the node_id.
-
-    producer = KafkaProducer(bootstrap_servers='localhost:9092')
-    log = {'Process': 'Agent' + node_id, 'message': 'I have been run'}
+    # get the node_id.
+    node_id = sys.argv[1]
+    BOOTSTRAP_SERVER = sys.argv[-1]
+    
+    # create a producer, log that agent has started.
+    producer = KafkaProducer(bootstrap_servers=BOOTSTRAP_SERVER)
+    log = { 'Process': 'Agent' + node_id, 'message': 'I have been run' }
     producer.send("logs", json.dumps(log).encode('utf-8'))
+    # producer.flush()
 
+    # Start agent server
     agent = Agent(node_id)
-    consumer = KafkaConsumer('AgentIn', bootstrap_servers='localhost:9092')
+    consumer = KafkaConsumer('AgentIn', bootstrap_servers=BOOTSTRAP_SERVER)
     print("Starting the agent server\n")
-
+   
     for msg in consumer:
         request = json.loads(msg.value)
-        if request['node_id'] == node_id:
-            log = {'Process': 'Agent ' + node_id, 'message': 'I have received a message', 'text': request}
-            # Handling the request based on method
-            if request['method'] == 'start_process':
+        if(request['node_id'] == node_id):
+            log = { 'Process': 'Agent ' + node_id, 'message': 'I have received a message', 'text': request}
+            producer.send("logs", json.dumps(log).encode('utf-8'))
+            
+            # Process RPC request
+            if(request['method'] == 'start_process'):
                 result = agent.start_process(request['args']['config'])
-            elif request['method'] == 'kill_process':
+            elif(request['method'] == 'kill_process'):
                 result = agent.kill_process(request['args']['process_id'])
-            elif request['method'] == 'reset_process':
+            elif(request['method'] == 'reset_process'):
                 result = agent.reset_process(request['args']['process_id'])
-            elif request['method'] == 'get_processes':
+            elif(request['method'] == 'get_processes'):
                 result = agent.get_processes()
-            elif request['method'] == 'get_health':
+            elif(request['method'] == 'get_health'):
                 result = agent.get_health()
             else:
                 result = {'error': 'Invalid method'}
-                print("Invalid method", request['method'])
-
+                print("Invalid method ", request['method'])
+            
             # Send output
             response = {"request": request, "result": result}
+            producer.send("logs", json.dumps(response).encode('utf-8'))
             producer.send('AgentOut', json.dumps(response).encode('utf-8'))
